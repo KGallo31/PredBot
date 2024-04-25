@@ -1,8 +1,6 @@
 require("dotenv").config();
 const { Client, IntentsBitField } = require("discord.js");
 const cheerio = require('cheerio');
-const { ADDRGETNETWORKPARAMS } = require('dns');
-
 
 const data = 
 {
