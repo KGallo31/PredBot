@@ -3,7 +3,7 @@ const { Client, IntentsBitField } = require("discord.js");
 const cheerio = require('cheerio');
 const fetch = require('node-fetch')
 
-const helpMessage = "Hello, Welcome to PredBot! \n I have a few helpful commands to view some of your Pred account stats \n A few commands to get started are: ?rank, ?last, ?current-total"
+const helpMessage = "Hello, Welcome to PredBot! \n I have a few helpful commands to view some of your Predecessor account stats \n A few commands to get started are: ?rank, ?last, ?current-total"
 const omedaPlayerUrl = "https://omeda.city/players/"
 
 
@@ -39,25 +39,26 @@ const getPlayerId = (author) => {
 const fetchOmedaPage = async (m) => {
   const playerId = getPlayerId(m.author)
   const url = omedaPlayerUrl + playerId
+  let response
   try {
-    const response = await fetch(url)
+    response = await fetch(url)
   } catch (e) {
     throw new Error ('Error fetching URL')
   }
-  console.log("here")
   return response
 }
 
 const getOmedaPage = async (m) => {
+  let loadedHtml
   try {
     const response = await fetchOmedaPage(m)
     if (!response.ok) {
-      m.reply("That url stinks")
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const rawHtml = await response.text()
-    const loadedHtml = cheerio.load(rawHtml)
+    loadedHtml = cheerio.load(rawHtml)
   }catch (e) {
+    console.log(e)
     return null
   }
   return loadedHtml
@@ -66,26 +67,29 @@ const getOmedaPage = async (m) => {
 const getPlayerRank = async (m) => {
   const omedaPage = await getOmedaPage(m)
   if (omedaPage === null){
-    return "lol nah"
+    return "error reading omeda page error has been logged"
   }
 
-  const playerRankText = loadedHtml("span.rank").text()
-  const mmrText = loadedHtml("span.profile-mmr").text().trim()
-  return `Current rank is: ${playerRankText} & MMR is: ${mmrText}`
+  const playerRankText = omedaPage("span.rank").text()
+  const mmrText = omedaPage("span.profile-mmr").text().replace(/\s/g, "")
+  const startOfPercentile = mmrText.indexOf("(");
+  const endOfPercentile = mmrText.indexOf(")");
+  const standardRank = mmrText.substring(0, startOfPercentile);
+  const playerPercentile = mmrText.substring(startOfPercentile + 1, endOfPercentile)
+  const brawlRank = mmrText.substring(endOfPercentile + 1);
+  return `Current rank is: ${playerRankText} MMR for standard is: ${standardRank} placing you in the ${playerPercentile} of players & MMR for brawl is ${brawlRank}`
 }
 
 const readMessage = async (m) => {
   const message = m.content
 
-  const command = message.split("?")[1];
-
-  if(command.includes("help")){
+  if(message.includes("?help")){
     m.reply(helpMessage)
-  }else if (command.includes("rank")){
+  }else if (message.includes("?rank")){
     m.reply(await getPlayerRank(m))
-  } else if (command.includes("last")){
+  } else if (message.includes("?last")){
     m.reply(await getLastGameMMR(m))
-  }else if (command.includes("current-total")){
+  }else if (message.includes("?current-total")){
     m.reply(await getTotalMMRFromFirstPage())
   }
 }
