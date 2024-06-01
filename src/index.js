@@ -80,6 +80,18 @@ const getPlayerRank = async (m) => {
   return `Current rank is: ${playerRankText} MMR for standard is: ${standardRank} placing you in the ${playerPercentile} of players & MMR for brawl is ${brawlRank}`
 }
 
+const getLastGameMMR = async (m) => {
+  const omedaPage = await getOmedaPage(m)
+  if (omedaPage === null){
+    return "error reading omeda page error has been logged"
+  }
+
+  const allMMRChanges = omedaPage("span.mmr-change").text().replace(/\s/g, "")
+  const indexOfEndofFirstMMR = allMMRChanges.indexOf("M")
+  const lastMMRChange = allMMRChanges.substring(0, indexOfEndofFirstMMR)
+  return `The MMR change of your last played game is ${lastMMRChange}`
+}
+
 const readMessage = async (m) => {
   const message = m.content
 
@@ -110,5 +122,4 @@ client.on("messageCreate", (m) => {
   readMessage(m)
 });
 
-client.login( process.env.TOKEN
-);
+client.login( process.env.TOKEN );
