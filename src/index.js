@@ -92,6 +92,13 @@ const getLastGameMMR = async (m) => {
   return `The MMR change of your last played game is ${lastMMRChange}`
 }
 
+const getTotalMMRFromFirstPage = async (m) => {
+  const omedaPage = await getOmedaPage(m)
+  if (omedaPage === null){
+    return "error reading omeda page error has been logged"
+  }
+}
+
 const readMessage = async (m) => {
   const message = m.content
 
@@ -102,7 +109,7 @@ const readMessage = async (m) => {
   } else if (message.includes("?last")){
     m.reply(await getLastGameMMR(m))
   }else if (message.includes("?current-total")){
-    m.reply(await getTotalMMRFromFirstPage())
+    m.reply(await getTotalMMRFromFirstPage(m))
   }
 }
 
